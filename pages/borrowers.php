@@ -1,3 +1,36 @@
+<?php
+require_once('../classes/database.php');
+$con = new database(); 
+
+if(isset($_POST['add_borrower'])){
+
+// 1. collect and validate inputs from user
+
+  $firstname = $_POST['borrower_firstname'];
+  $lastname = $_POST['borrower_lastname'];
+  $email = $_POST['borrower_email'];
+  $phone = $_POST['borrower_phone_number'];
+  $member_since = $_POST['borrower_member_since'];
+  $is_active = $_POST['is_active'];
+  $temp_password = $_POST['temp_password'];
+
+// 2. Hashed the password
+  $password_hash = password_hash($temp_password, PASSWORD_DEFAULT);
+
+// 3. Insert Into users table and get a new user_id
+
+$user_id = $con->insertUser($email, $password_hash, $is_active);
+
+// 4. Insert into borrowers table and get a new borrower_id
+$borrowers_id = $con->insertBorrowers($firstname, $lastname, $email, $phone, $member_since, $is_active);
+
+// 5. INSERT INTO BorrowersUsers mapping(linking) table
+   $con->insertBorrowerUser($user_id, $borrowers_id);
+}
+
+
+  ?>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,6 +39,8 @@
   <title>Borrowers — Admin</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../bootstrap-5.3.3-dist/css/bootstrap.css">
+  
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
@@ -18,7 +53,7 @@
       <ul class="navbar-nav me-auto gap-lg-1">
         <li class="nav-item"><a class="nav-link" href="admin-dashboard.html">Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="books.html">Books</a></li>
-        <li class="nav-item"><a class="nav-link active" href="borrowers.html">Borrowers</a></li>
+        <li class="nav-item"><a class="nav-link active" href="borrowers.php">Borrowers</a></li>
         <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
         <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
       </ul>
@@ -139,7 +174,7 @@
                 </div>
               </div>
 
-              <button class="btn btn-primary w-100 mt-3" type="submit">Create Borrower Account</button>
+              <button name="add_borrower" class="btn btn-primary w-100 mt-3" type="submit">Create Borrower Account</button>
             </form>
           </div>
         </div>
