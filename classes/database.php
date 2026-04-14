@@ -4,7 +4,7 @@ class database{
     function opencon(): PDO{
         return new PDO(
     'mysql:host=localhost;
-          dbname=librarymanagement',
+          dbname=library_management',
           username: 'root',
           password: '');    
 
@@ -100,6 +100,24 @@ class database{
 
 
         }
+    }
+
+        function insertBook($title, $isbn, $publication_year, $edition, $publisher) {  
+    try {
+        $con = $this->opencon();
+        $con->beginTransaction(); // Added transaction handling
+        $stmt = $con->prepare("INSERT INTO books (book_title, book_isbn, book_publication_year, book_edition, book_publisher) VALUES(?,?,?,?,?)");
+        $stmt->execute([$title, $isbn, $publication_year, $edition, $publisher]);
+        $book_id = $con->lastInsertId();
+        $con->commit();
+
+        return true;
+    } catch (PDOException $e) {
+        if ($con->inTransaction()) {
+            $con->rollBack();
+        }
+        throw $e; // Re-throw the exception for higher-level handling
+    }   
     }
 }
 ?>

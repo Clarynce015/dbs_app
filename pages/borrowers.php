@@ -66,13 +66,13 @@ $ba_id = $con->insertBorrowerAddress($borrower_id, $house_number, $street, $bara
 
 
 
-$addressCreateMessage = 'success';
-  $addressUpdateStatus = 'Address addedd successfully.';
+  $addressUpdateStatus = 'Success';
+  $addressCreateMessage = 'Address addedd successfully.';
 
 } catch (Exception $e) {
 
-  $addressCreateMessage  = 'error';
-  $addressUpdateStatus = 'Error creating Address.';
+  $addressUpdateStatus  = 'Error';
+  $addressCreateMessage = 'Error creating Address.';
 
   }
     }
@@ -331,68 +331,43 @@ $addressCreateMessage = 'success';
   const createStatus = <?php echo json_encode($borrowersCreateStatus)?>;
   const createMessage = <?php echo json_encode($borrowerCreateMessage)?>;
 
-  if(createStatus == 'success'){
+  if(createStatus === 'success'){
     Swal.fire({
       icon: 'success',
       title: 'Success',
       text: createMessage,
       confirmButtonText: 'OK'
-
     });
-    
-  }else if(createStatus == 'error'){
+  } else if(createStatus === 'error') {
     Swal.fire({
-      icon: 'success',
-      title: 'Success',
+      icon: 'error',
+      title: 'Error',
       text: createMessage,
       confirmButtonText: 'OK'
-
     });
-
   }
 
+  const addressStatus = <?php echo json_encode($addressUpdateStatus); ?>;
+  const addressMessage = <?php echo json_encode($addressCreateMessage); ?>;
 
-
-  
-
-  
-
-</script>
-
-<script>
-  
-
-  const createStatus = <?php echo json_encode($addressUpdateStatus)?>;
-  const createMessage = <?php echo json_encode($addressCreateMessage)?>;
-
-  if(createStatus == 'success'){
+  if (addressStatus === 'Success') {
     Swal.fire({
       icon: 'success',
       title: 'Success',
-      text: createMessage,
+      text: addressMessage,
       confirmButtonText: 'OK'
-
     });
-    
-  }else if(createStatus == 'error'){
+  } else if (addressStatus === 'Error') {
     Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: createMessage,
+      icon: 'error',
+      title: 'Error',
+      text: addressMessage,
       confirmButtonText: 'OK'
-
     });
-
-  }else if
-
-
-
-  
-
-  
-
+  }
 
 </script>
+
 
 
 
