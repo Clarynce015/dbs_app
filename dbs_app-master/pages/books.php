@@ -18,7 +18,7 @@ if (isset($_POST['save_book'])) {
   try {
     
     $bookCreateStatus = 'success';
-    $bookCreateMessage = 'Book saved successfully!';
+    $bookCreateMessage = 'Book saved successfully';
   } catch (Exception $e) {
     $bookCreateStatus = 'error';
     $bookCreateMessage = 'Error saving book: ' . $e->getMessage();
