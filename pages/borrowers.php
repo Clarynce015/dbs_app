@@ -102,7 +102,7 @@ $ba_id = $con->insertBorrowerAddress($borrower_id, $house_number, $street, $bara
     <div id="navBorrowersAdmin" class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto gap-lg-1">
         <li class="nav-item"><a class="nav-link" href="admin-dashboard.html">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="books.html">Books</a></li>
+        <li class="nav-item"><a class="nav-link" href="books.php">Books</a></li>
         <li class="nav-item"><a class="nav-link active" href="borrowers.php">Borrowers</a></li>
         <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
         <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
