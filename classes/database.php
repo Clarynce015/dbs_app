@@ -4,7 +4,7 @@ class database{
     function opencon(): PDO{
         return new PDO(
     'mysql:host=localhost;
-          dbname=library_management',
+          dbname=librarymanagement',
           username: 'root',
           password: '');    
 
@@ -115,9 +115,55 @@ class database{
     } catch (PDOException $e) {
         if ($con->inTransaction()) {
             $con->rollBack();
-        }
-        throw $e; // Re-throw the exception for higher-level handling
-    }   
+            }
+         // Re-throw the exception for higher-level handling
+        }   
     }
+
+        
+        function viewBooks() {
+                $con = $this->opencon();
+                return $con->query("SELECT * from Books")->fetchAll();
+
+
+        }
+        function insertBookCopy($book_id, $bc_status) {
+        $con = $this->opencon();
+            
+        try{
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO book_copy (bc_status, book_id) VALUES(?,?)");
+            $stmt->execute([$book_id, $bc_status, ]);
+            $Copy_id = $con->lastInsertId();
+            $con->commit();
+
+            return true;
+        }catch(PDOException $e){
+            if($con->inTransaction()){
+                    $con->rollBack();
+
+
+            }
+
+
+        }
+    }
+    function viewCopies(){
+        $con = $this->opencon();
+        return $con->query("SELECT 
+        books.book_id, 
+        books.book_title, 
+        books.book_isbn, 
+        books.book_publication_year, 
+        books.book_publisher, 
+        COUNT(book_copy.copy_id) as Copies, 
+        SUM(book_copy.bc_status = 'AVAILABLE') as Available_copies 
+        FROM books 
+        JOIN book_copy ON book_copy.book_id = books.book_id 
+        Group by 1;
+        
+        ")->fetchAll();
+    }
+
 }
 ?>

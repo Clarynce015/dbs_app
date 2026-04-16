@@ -357,6 +357,7 @@ $ba_id = $con->insertBorrowerAddress($borrower_id, $house_number, $street, $bara
       text: addressMessage,
       confirmButtonText: 'OK'
     });
+    
   } else if (addressStatus === 'Error') {
     Swal.fire({
       icon: 'error',

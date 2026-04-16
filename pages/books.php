@@ -2,8 +2,15 @@
 require_once('../classes/database.php');
 $con = new database();
 
+$allbooks = $con->viewBooks();
+
+
 $bookCreateStatus = null;
 $bookCreateMessage = '';
+
+$bookCopyCreateStatus = null;
+$bookCopyCreateMessage = '';
+  
 
 if (isset($_POST['save_book'])) {
   $title = $_POST['book_title'];
@@ -13,17 +20,35 @@ if (isset($_POST['save_book'])) {
   $publisher = $_POST['book_publisher'];
 
 
-  $con->insertBook($title, $isbn, $publication_year, $edition, $publisher);
-
+  
   try {
-    
+    $con->insertBook($title, $isbn, $publication_year, $edition, $publisher);
+
     $bookCreateStatus = 'success';
     $bookCreateMessage = 'Book saved successfully';
   } catch (Exception $e) {
     $bookCreateStatus = 'error';
-    $bookCreateMessage = 'Error saving book: ' . $e->getMessage();
+    $bookCreateMessage = 'Error saving book: ' ;
   }
 }
+
+if (isset($_POST['add_copy'])) {
+    $bc_status = $_POST['status'];
+    $book_id = $_POST['book_id'];
+
+  
+  try {
+    $allbooks = $con->insertBookCopy($bc_status, $book_id);
+
+    $bookCopyCreateStatus = 'success';
+    $bookCopyCreateMessage = 'BookCopy saved successfully';
+  } catch (Exception $e) {
+    $bookCopyCreateStatus = 'error';
+    $bookCopyCreateMessage = 'Error saving bookcopy: ';
+  }
+}
+
+
 ?>
 
 <!doctype html>
@@ -104,16 +129,17 @@ if (isset($_POST['save_book'])) {
           <div class="mb-3">
             <label class="form-label">Book</label>
             <select class="form-select" name="book_id" required>
-              <option value="">Select book</option>
-              <option value="1">Noli Me Tangere</option>
-              <option value="2">El Filibusterismo</option>
-              <option value="3">Mga Ibong Mandaragit</option>
-              <option value="4">Smaller and Smaller Circles</option>
-              <option value="5">Dekada ’70</option>
+               <?php
+              foreach($allbooks as $books) {
+                  echo '<option value="'.$books['book_id'] .'">'.$books['book_title']. '</option>';
+                  }
+              
+              ?>
+            
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label">Status</label>
+            <label  class="form-label">Status</label>
             <select class="form-select" name="status" required>
               <option value="AVAILABLE">AVAILABLE</option>
               <option value="ON_LOAN">ON_LOAN</option>
@@ -122,7 +148,7 @@ if (isset($_POST['save_book'])) {
               <option value="REPAIR">REPAIR</option>
             </select>
           </div>
-          <button class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
+          <button name=" add_copy" class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
         </form>
       </div>
     </div>
@@ -155,32 +181,34 @@ if (isset($_POST['save_book'])) {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>1</td>
-                <td>Noli Me Tangere</td>
-                <td>9789710810736</td>
-                <td>1887</td>
-                <td>National Book Store</td>
-                <td>3</td>
-                <td><span class="badge text-bg-success">2</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>Smaller and Smaller Circles</td>
-                <td>9789712721768</td>
-                <td>2002</td>
-                <td>Ateneo de Manila University Press</td>
-                <td>2</td>
-                <td><span class="badge text-bg-warning">1</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>
-                  <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-              </tr>
+
+              <?php    
+              $viewcopies = $con->viewCopies();
+              foreach($viewcopies as $vw) {
+              
+              
+
+
+             echo' <tr>';
+             echo '<td>'.$vw['book_id']. '</td>';
+             echo  '<td>'.$vw['book_title']. '</td>';
+             echo  '<td>'.$vw['book_isbn']. '</td>';
+             echo  '<td>'.$vw['book_publication_year']. '</td>';
+             echo  '<td>'.$vw['book_publisher']. '</td>';
+             echo  '<td>'.$vw['Copies']. '</td>';
+             echo  '<td>'.$vw['Available_copies']. '</td>';
+             echo   '<td class="text-end">';
+            echo   '<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>';
+            echo    '<button class="btn btn-sm btn-outline-danger">Delete</button>';
+             echo   '</td>';
+             echo '</tr>';
+              }
+
+              ?>
+
+
+
+
             </tbody>
           </table>
         </div>
@@ -289,6 +317,8 @@ if (isset($_POST['save_book'])) {
   const bookStatus = <?php echo json_encode($bookCreateStatus); ?>;
   const bookMessage = <?php echo json_encode($bookCreateMessage); ?>;
 
+    const bookcopyStatus = <?php echo json_encode($bookCopyCreateStatus); ?>;
+  const bookcopyMessage = <?php echo json_encode($bookCopyCreateMessage); ?>;
   if (bookStatus === 'success') {
     Swal.fire({
       icon: 'success',
@@ -301,6 +331,20 @@ if (isset($_POST['save_book'])) {
       icon: 'error',
       title: 'Error',
       text: bookMessage,
+      confirmButtonText: 'OK'
+    });
+  }else if (bookcopyStatus === 'success') {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: bookcopyMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if (bookcopyStatus === 'error') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: bookcopyMessage,
       confirmButtonText: 'OK'
     });
   }
