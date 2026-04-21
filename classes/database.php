@@ -4,7 +4,7 @@ class database{
     function opencon(): PDO{
         return new PDO(
     'mysql:host=localhost;
-          dbname=librarymanagement',
+          dbname=library_management',
           username: 'root',
           password: '');    
 
@@ -102,6 +102,9 @@ class database{
         }
     }
 
+
+
+
         function insertBook($title, $isbn, $publication_year, $edition, $publisher) {  
     try {
         $con = $this->opencon();
@@ -165,5 +168,57 @@ class database{
         ")->fetchAll();
     }
 
+
+    function viewauthors() {
+        $con = $this->opencon();
+        return $con->query("SELECT * from Author")->fetchAll();
+
+    }
+    function insertBookAuthor($book_id, $author_id) {
+        $con = $this->opencon();
+
+        try {
+            $con->beginTransaction();
+            $stmt = $con->prepare("INSERT INTO book_authors (book_id, author_id) VALUES (?, ?)");
+            $stmt->execute([$book_id, $author_id]);
+            $baba_id = $con->lastInsertId();
+            $con->commit();
+
+            return true;
+        } catch (PDOException $e) {
+            if ($con->inTransaction()) {
+                $con->rollBack();
+            }
+            
+            return false;
+        }
+    }
+
+        function viewgenre() {
+        $con = $this->opencon();
+        return $con->query("SELECT * from Genre")->fetchAll();
+
+    }
+
+        function insertBookGenre($book_id, $genre_id) {
+            $con = $this->opencon();
+
+            try {
+                $con->beginTransaction();
+                $stmt = $con->prepare("INSERT INTO book_genre (book_id, genre_id) VALUES (?, ?)");
+                $stmt->execute([$book_id, $genre_id]);
+                $gb_id = $con->lastInsertId();
+                $con->commit();
+
+                return true;
+            } catch (PDOException $e) {
+                if ($con->inTransaction()) {
+                    $con->rollBack();
+                }
+                
+                return false;
+            }
+    }
 }
+
 ?>

@@ -3,14 +3,22 @@ require_once('../classes/database.php');
 $con = new database();
 
 $allbooks = $con->viewBooks();
-
+$allauthors = $con->viewauthors();
+$allgenre = $con->viewgenre();
 
 $bookCreateStatus = null;
 $bookCreateMessage = '';
 
 $bookCopyCreateStatus = null;
 $bookCopyCreateMessage = '';
-  
+
+$authorAssignStatus = null;
+$authorAssignMessage = '';
+
+$genreAssignStatus = null;
+$genreAssignMessage = '';
+
+
 
 if (isset($_POST['save_book'])) {
   $title = $_POST['book_title'];
@@ -35,7 +43,7 @@ if (isset($_POST['save_book'])) {
 if (isset($_POST['add_copy'])) {
     $bc_status = $_POST['status'];
     $book_id = $_POST['book_id'];
-
+    
   
   try {
     $allbooks = $con->insertBookCopy($bc_status, $book_id);
@@ -48,6 +56,35 @@ if (isset($_POST['add_copy'])) {
   }
 }
 
+if (isset($_POST['assign_author'])) {
+    $book_id = $_POST['book_id'];
+    $author_id = $_POST['author_id'];
+
+    try {
+        $con->insertBookAuthor($book_id, $author_id);
+
+        $authorAssignStatus = 'success';
+        $authorAssignMessage = 'Author assigned to book successfully';
+    } catch (Exception $e) {
+        $authorAssignStatus = 'error';
+        $authorAssignMessage = 'Error assigning author to book: ' . $e->getMessage();
+    }
+}
+
+if (isset($_POST['assign_genre'])) {
+    $book_id = $_POST['book_id'];
+    $genre_id = $_POST['genre_id'];
+
+    try {
+        $con->insertBookGenre($book_id, $genre_id);
+
+        $genreAssignStatus = 'success';
+        $genreAssignMessage = 'Genre assigned to book successfully';
+    } catch (Exception $e) {
+        $genreAssignStatus = 'error';
+        $genreAssignMessage = 'Error assigning genre to book: ' . $e->getMessage();
+    }
+}
 
 ?>
 
@@ -224,21 +261,26 @@ if (isset($_POST['add_copy'])) {
               <form action="#" method="POST" class="row g-2">
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="book_id" required>
-                    <option value="">Select book</option>
-                    <option value="1">Noli Me Tangere</option>
-                    <option value="2">El Filibusterismo</option>
+                    <?php
+                  foreach($allbooks as $books) {
+                  echo '<option value="'.$books['book_id'] .'">'.$books['book_title']. '</option>';
+                  }
+              
+                    ?>
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="author_id" required>
-                    <option value="">Select author</option>
-                    <option value="1">Jose Rizal</option>
-                    <option value="2">Amado Hernandez</option>
-                    <option value="3">F. H. Batacan</option>
+                     <?php
+                    foreach($allauthors as $authors) {
+                    echo '<option value="'.$authors['author_id'] .'">'.$authors['author_firstname']. ' '.$authors['author_lastname']. '</option>';
+                    }
+              
+                      ?>
                   </select>
                 </div>
                 <div class="col-12">
-                  <button class="btn btn-outline-primary w-100" type="submit">Assign</button>
+                  <button name="assign_author" class="btn btn-outline-primary w-100" type="submit">Assign</button>
                 </div>
               </form>
               <div class="small-muted mt-2">Unique constraint prevents duplicate (book_id, author_id).</div>
@@ -253,20 +295,26 @@ if (isset($_POST['add_copy'])) {
               <form action="#" method="POST" class="row g-2">
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="book_id" required>
-                    <option value="">Select book</option>
-                    <option value="1">Noli Me Tangere</option>
-                    <option value="2">El Filibusterismo</option>
+                    <?php
+                  foreach($allbooks as $books) {
+                  echo '<option value="'.$books['book_id'] .'">'.$books['book_title']. '</option>';
+                  }
+              
+                    ?>
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
                   <select class="form-select" name="genre_id" required>
-                    <option value="">Select genre</option>
-                    <option value="1">Classic</option>
-                    <option value="5">Philippine Literature</option>
+                      <?php
+                      foreach($allgenre as $genre) {
+                      echo '<option value="'.$genre['genre_id'] .'">'.$genre['genre_name']. '</option>';
+                      }
+                
+                        ?>
                   </select>
                 </div>
                 <div class="col-12">
-                  <button class="btn btn-outline-primary w-100" type="submit">Assign</button>
+                  <button name="assign_genre" class="btn btn-outline-primary w-100" type="submit">Assign</button>
                 </div>
               </form>
               <div class="small-muted mt-2">Unique constraint prevents duplicate (genre_id, book_id).</div>
@@ -317,8 +365,16 @@ if (isset($_POST['add_copy'])) {
   const bookStatus = <?php echo json_encode($bookCreateStatus); ?>;
   const bookMessage = <?php echo json_encode($bookCreateMessage); ?>;
 
-    const bookcopyStatus = <?php echo json_encode($bookCopyCreateStatus); ?>;
+  const bookcopyStatus = <?php echo json_encode($bookCopyCreateStatus); ?>;
   const bookcopyMessage = <?php echo json_encode($bookCopyCreateMessage); ?>;
+
+  const authorAssignStatus = <?php echo json_encode($authorAssignStatus); ?>;
+  const authorAssignMessage = <?php echo json_encode($authorAssignMessage); ?>;
+
+  const genreAssignStatus = <?php echo json_encode($genreAssignStatus); ?>;
+  const genreAssignMessage = <?php echo json_encode($genreAssignMessage); ?>;
+
+
   if (bookStatus === 'success') {
     Swal.fire({
       icon: 'success',
@@ -345,6 +401,34 @@ if (isset($_POST['add_copy'])) {
       icon: 'error',
       title: 'Error',
       text: bookcopyMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if (authorAssignStatus === 'success') {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: authorAssignMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if (authorAssignStatus === 'error') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: authorAssignMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if (genreAssignStatus === 'success') {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: genreAssignMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if (genreAssignStatus === 'error') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: genreAssignMessage,
       confirmButtonText: 'OK'
     });
   }
