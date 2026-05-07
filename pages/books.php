@@ -6,6 +6,10 @@ $allbooks = $con->viewBooks();
 $allauthors = $con->viewauthors();
 $allgenre = $con->viewgenre();
 
+
+
+
+
 $bookCreateStatus = null;
 $bookCreateMessage = '';
 
@@ -17,6 +21,9 @@ $authorAssignMessage = '';
 
 $genreAssignStatus = null;
 $genreAssignMessage = '';
+
+$bookDeleteStatus = null;
+$bookDeleteMessage = '';
 
 
 
@@ -86,6 +93,54 @@ if (isset($_POST['assign_genre'])) {
     }
 }
 
+
+if (isset($_POST['update_book'])) {
+    $book_id = $_POST['edit_book_id'];
+    $title = $_POST['edit_book_title'];
+    $isbn = $_POST['edit_book_isbn'];
+    $publication_year = $_POST['edit_book_publication_year'];
+    $publisher = $_POST['edit_book_publisher'];
+
+    try {
+        $con->updateBook($book_id, $title, $isbn, $publication_year, $publisher);
+
+        $updaateBookStatus = 'success';
+        $updateBookMessage = 'Book updated successfully';
+        
+    } catch (Exception $e) {
+        $updaateBookStatus = 'error'; 
+        $updateBookMessage = 'Error updating book: ' . $e->getMessage();
+    }
+}
+
+     if(isset($_POST['delete_book'])){
+    
+    
+    $book_id = $_POST['book_id'];
+    $book_title = $_POST['book_title'];
+    $_SESSION['book_title'] = $book_title;
+
+
+    try {
+
+    
+    $con->deletebooks($book_id);
+    $_SESSION['success_message'] = $book_title . ' has been deleted in the database. ';
+    header('Location: books.php');
+    exit();
+    
+    
+
+
+    } catch (Exception $e){
+    $error_message = "Cannot delete this book. It may have active loans or active copies in use";
+      
+
+
+    }
+
+}
+
 ?>
 
 <!doctype html>
@@ -110,8 +165,9 @@ if (isset($_POST['assign_genre'])) {
     </button>
     <div id="navBooks" class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto gap-lg-1">
-        <li class="nav-item"><a class="nav-link" href="admin-dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="admin-dashboard.php">Dashboard</a></li>
         <li class="nav-item"><a class="nav-link active" href="books.php">Books</a></li>
+        <li class="nav-item"><a class="nav-link active" href="authors-genres.php">Authors &amp; Genres</a></li>
         <li class="nav-item"><a class="nav-link" href="borrowers.php">Borrowers</a></li>
         <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
         <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
@@ -126,6 +182,9 @@ if (isset($_POST['assign_genre'])) {
 </nav>
 
 <main class="container py-4">
+
+
+
   <div class="row g-3">
     <div class="col-12 col-lg-4">
       <div class="card p-4">
@@ -185,7 +244,7 @@ if (isset($_POST['assign_genre'])) {
               <option value="REPAIR">REPAIR</option>
             </select>
           </div>
-          <button name=" add_copy" class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
+          <button name="add_copy" class="btn btn-outline-primary w-100" type="submit">Add Copy</button>
         </form>
       </div>
     </div>
@@ -235,11 +294,20 @@ if (isset($_POST['assign_genre'])) {
              echo  '<td>'.$vw['Copies']. '</td>';
              echo  '<td>'.$vw['Available_copies']. '</td>';
              echo   '<td class="text-end">';
-            echo   '<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal">Edit</button>';
-            echo    '<button class="btn btn-sm btn-outline-danger">Delete</button>';
-             echo   '</td>';
-             echo '</tr>';
-              }
+            echo   '<button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editBookModal"
+
+            data-book-id="'.$vw['book_id'].'"
+            data-book-title="'.$vw['book_title'].'"
+            data-book-isbn="'.$vw['book_isbn'].'"
+            data-book-publication-year="'.$vw['book_publication_year'].'" 
+            data-book-publisher="'.$vw['book_publisher'].'"   
+            >Edit</button>';
+
+            
+            echo '<button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteBookModal"
+                data-book-id="'.$vw['book_id'].'"
+                data-book-title="'.htmlspecialchars($vw['book_title']).'">Delete</button>';
+                          }
 
               ?>
 
@@ -335,22 +403,61 @@ if (isset($_POST['assign_genre'])) {
         <h5 class="modal-title">Edit Book</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
+
+
       <div class="modal-body">
         <!-- Later in PHP: load existing values -->
         <form action="#" method="POST">
+
+          <div class="mb-3">
+            <label class="form-label">Book ID</label>
+            <input class="form-control" value="book_id" id="edit_book_id" name="edit_book_id" readonly>
+          </div>
+
+
           <div class="mb-3">
             <label class="form-label">Title</label>
-            <input class="form-control" value="Noli Me Tangere">
+            <input class="form-control" value="book_title" id="edit_book_title" name="edit_book_title">
           </div>
+
           <div class="mb-3">
             <label class="form-label">ISBN</label>
-            <input class="form-control" value="9789710810736">
+            <input class="form-control" value="9789710810736" id="edit_book_isbn" name="edit_book_isbn">
           </div>
+
+          <div class="mb-3">
+            <label class="form-label">Publication Year</label>
+            <input class="form-control" min="1500" max="2100" id="edit_book_publication_year" name="edit_book_publication_year">
+          </div>
+
           <div class="mb-3">
             <label class="form-label">Publisher</label>
-            <input class="form-control" value="National Book Store">
+            <input class="form-control" value="National Book Store" id="edit_book_publisher" name="edit_book_publisher">
           </div>
-          <button class="btn btn-primary w-100" type="button">Save Changes</button>
+          <button name="update_book" class="btn btn-primary w-100" type="submit">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteBookModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Book</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="delete_book_title_display"></strong>?</p>
+        <p class="text-danger small">This action cannot be undone.</p>
+        <form action="#" method="POST">
+          <input type="hidden" name="book_id" id="delete_book_id">
+          <input type="hidden" name="book_title" id="delete_book_title">
+          <div class="d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-danger" name="delete_book">Delete</button>
+          </div>
         </form>
       </div>
     </div>
@@ -360,8 +467,36 @@ if (isset($_POST['assign_genre'])) {
 <script src="../bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
 <script src="../sweetalert/dist/sweetalert2.js"></script>
 
+<script> 
 
-<script>
+  
+
+
+  const editBookModal = document.getElementById('editBookModal');
+
+  editBookModal.addEventListener('show.bs.modal', function (event) {
+  const btn = event.relatedTarget;
+  if (!btn) return; 
+  document.getElementById('edit_book_id').value = btn.getAttribute('data-book-id') || '';
+  document.getElementById('edit_book_title').value = btn.getAttribute('data-book-title') || '';
+  document.getElementById('edit_book_isbn').value = btn.getAttribute('data-book-isbn') || '';
+  document.getElementById('edit_book_publication_year').value = btn.getAttribute('data-book-publication-year') || '';
+  document.getElementById('edit_book_publisher').value = btn.getAttribute('data-book-publisher') || '';
+
+});
+
+  const deleteBookModal = document.getElementById('deleteBookModal');
+
+  deleteBookModal.addEventListener('show.bs.modal', function (event) {
+    const btn = event.relatedTarget;
+    if (!btn) return;
+    document.getElementById('delete_book_id').value = btn.getAttribute('data-book-id') || '';
+    document.getElementById('delete_book_title').value = btn.getAttribute('data-book-title') || '';
+    document.getElementById('delete_book_title_display').textContent = btn.getAttribute('data-book-title') || '';
+  });
+
+
+
   const bookStatus = <?php echo json_encode($bookCreateStatus); ?>;
   const bookMessage = <?php echo json_encode($bookCreateMessage); ?>;
 
@@ -373,6 +508,8 @@ if (isset($_POST['assign_genre'])) {
 
   const genreAssignStatus = <?php echo json_encode($genreAssignStatus); ?>;
   const genreAssignMessage = <?php echo json_encode($genreAssignMessage); ?>;
+
+ 
 
 
   if (bookStatus === 'success') {
@@ -432,8 +569,29 @@ if (isset($_POST['assign_genre'])) {
       confirmButtonText: 'OK'
     });
   }
-</script>
 
+</script>
+<script>
+ const bookUpdateStatus = <?php echo json_encode($updaateBookStatus); ?>;
+const bookUpdateMessage = <?php echo json_encode($updateBookMessage); ?>;
+
+  if (bookUpdateStatus === 'success') {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: bookUpdateMessage,
+      confirmButtonText: 'OK'
+    });
+  } else if (bookUpdateStatus === 'error') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: bookUpdateMessage,
+      confirmButtonText: 'OK'
+    });
+  }
+
+  </script>
 
 </body>
 </html>

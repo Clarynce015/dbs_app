@@ -1,3 +1,16 @@
+<?php
+require_once('../classes/database.php');
+$con = new database();
+
+$recentLoans = $con->viewloans();
+$bookcount = $con->countBook();
+$copycount = $con->countCopies();
+$openloans = $con->countOpenLoans();
+$overdue = $con->countOverdue();
+$countOverdueItem = $con->countOverdueItem();
+?>
+
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -19,6 +32,7 @@
       <ul class="navbar-nav me-auto gap-lg-1">
         <li class="nav-item"><a class="nav-link active" href="admin-dashboard.html">Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="books.php">Books</a></li>
+        <li class="nav-item"><a class="nav-link active" href="authors-genres.php">Authors &amp; Genres</a></li>
         <li class="nav-item"><a class="nav-link" href="borrowers.php">Borrowers</a></li>
         <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
         <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
@@ -43,25 +57,36 @@
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Total Books</div>
-              <div class="fs-4 fw-semibold">5</div>
+              <div class="fs-4 fw-semibold"><?php echo $bookcount; ?></div>
+              
             </div>
           </div>
+
+
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Total Copies</div>
-              <div class="fs-4 fw-semibold">11</div>
+              <div class="fs-4 fw-semibold"><?php echo $copycount; ?></div>
+              
             </div>
           </div>
+
+
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Open Loans</div>
-              <div class="fs-4 fw-semibold">2</div>
+              <div class="fs-4 fw-semibold"><?php echo $openloans; ?></div>
+              
             </div>
           </div>
+
+
+
           <div class="col-6 col-md-3">
             <div class="border rounded p-3 bg-white">
               <div class="small-muted">Overdue Items</div>
-              <div class="fs-4 fw-semibold">0</div>
+              <div class="fs-4 fw-semibold"><?php echo $overdue; ?></div>
+              
             </div>
           </div>
         </div>
@@ -82,25 +107,27 @@
             </thead>
             <tbody>
               <tr>
-                <td>1004</td>
-                <td>Ana Bautista</td>
-                <td><span class="badge text-bg-warning">OPEN</span></td>
-                <td>2026-02-15</td>
-                <td>admin.library@samplemail.com</td>
-              </tr>
-              <tr>
-                <td>1003</td>
-                <td>Mark Reyes</td>
-                <td><span class="badge text-bg-warning">OPEN</span></td>
-                <td>2026-01-10</td>
-                <td>admin.library@samplemail.com</td>
-              </tr>
-              <tr>
-                <td>1002</td>
-                <td>Maria Santos</td>
-                <td><span class="badge text-bg-success">CLOSED</span></td>
-                <td>2025-12-12</td>
-                <td>admin.library@samplemail.com</td>
+           <?php
+            $recentLoans = $con->viewloans();
+            foreach($recentLoans as $loan) {
+                echo '<tr>';
+                echo '<td>' . $loan['loan_id'] . '</td>';
+                echo '<td>' . $loan['Borrower_name'] . '</td>';
+                echo '<td>';
+                if($loan['loan_status'] === 'OPEN') {
+                    echo '<span class="badge text-bg-warning">OPEN</span>';
+                } elseif($loan['loan_status'] === 'CLOSED') {
+                    echo '<span class="badge text-bg-success">CLOSED</span>';
+                } else {
+                    echo '<span class="badge text-bg-secondary">' . $loan['status'] . '</span>';
+                }
+                echo '</td>';
+                echo '<td>' . $loan['loan_date'] . '</td>';
+                echo '<td>' . $loan['processed_by'] . '</td>';
+                echo '</tr>';
+            }
+            ?>
+             
               </tr>
             </tbody>
           </table>
