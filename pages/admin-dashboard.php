@@ -35,7 +35,7 @@ $countOverdueItem = $con->countOverdueItem();
         <li class="nav-item"><a class="nav-link active" href="authors-genres.php">Authors &amp; Genres</a></li>
         <li class="nav-item"><a class="nav-link" href="borrowers.php">Borrowers</a></li>
         <li class="nav-item"><a class="nav-link" href="checkout.html">Checkout</a></li>
-        <li class="nav-item"><a class="nav-link" href="return.html">Return</a></li>
+        <li class="nav-item"><a class="nav-link" href="return.php">Return</a></li>
         <li class="nav-item"><a class="nav-link" href="catalog.html">Catalog</a></li>
       </ul>
       <div class="d-flex align-items-center gap-2">

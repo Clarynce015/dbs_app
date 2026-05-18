@@ -531,9 +531,64 @@ function opencon(): PDO {
                     throw $e;
                 }
         }
-    }
+
+            function getLoanItem(){
+               $con = $this->opencon();
+               return $con->query("SELECT
+               loan_item.loan_item_id,
+               books.book_title,
+               loan_item.li_duedate
+               FROM loan_item
+               JOIN book_copy on book_copy.copy_id = loan_item.copy_id
+               JOIN books on books.book_id = book_copy.book_id
+               LEFT JOIN loan on loan_item.loan_id = loan.loan_id
+               ORDER BY 1") ->fetchAll();
 
 
+            }
 
+            function processLoanReturns($loan_item_id, $li_returned_at, $condition_in) {
+                $con = $this->opencon();
+                try{
+                    $con-> beginTransaction();
+                    $getLoanItemstmt = $con->prepare("SELECT copy_id, loan_id FROM loan_item WHERE loan_item_id = ? ");
+                    $getLoanItemstmt->execute([$loan_item_id]);
+                    $LoanItem =  $getLoanItemstmt->fetch();
 
+                        if(!$LoanItem){
+                            throw new exception("Loan Item: $loan_item_id is not existing.");
+                        }
 
+                        $copy_id = $LoanItem['copy_id'];
+                        $loan_id = $LoanItem['loan_id'];
+
+                        $updateLoanStmt = $con->prepare("UPDATE loan_item SET li_returned_at = ?, condition_in = ? WHERE loan_item_id = ? ");
+                        $updateLoanStmt->execute([$li_returned_at, $condition_in, $loan_item_id]);
+
+                        $updatebookcopyStmt = $con->prepare("UPDATE book_copy SET bc_status = 'AVAILABLE WHERE copy_id = ? ");
+                        $updatebookcopyStmt->execute([$copy_id]);
+
+                        $getLoanItemCountstmt = $con->prepare("SELECT count(*) as 'unreturned_items' FROM loan_item WHERE loan_id = ? AND li_returned_at IS NULL");
+                        $getLoanItemCountstmt->execute([$loan_id]);
+                        $result = $getLoanItemCountstmt->fetch();
+
+                        if($result['unreturned_items']== 0){
+                             $updateLoantitemStmt = $con->prepare("UPDATE loan SET loan_status = 'CLOSED' WHERE loan_id = ? ");
+                             $updateLoantitemStmt->execute([$loan_id]);
+                        }
+
+                        $con->commit();
+                        return true;
+                        
+                }  catch (PDOException $e) {
+                    if ($con->inTransaction()) {
+                        $con->rollBack();
+                    }
+                    throw $e; 
+            
+            }
+
+        }
+}
+
+?>
